@@ -1,5 +1,5 @@
 <?php
-if (!defined("URL")) define("URL", "http://localhost/Examen_GrupoC");
+if (!defined("URL")) define("URL", "http://localhost/tareas DAW/Examen_GrupoC");
 ?>
 
 <!doctype html>
@@ -29,7 +29,7 @@ if (!defined("URL")) define("URL", "http://localhost/Examen_GrupoC");
       "addenfermedades" => "views/agregar_enfermedades.php",
       "addmunicipios" => "views/agregar_municipios.php",
       "addhospitalizacion" => "views/agregar_hospitalizacion.php",
-      "addpaciente" => "views/agregar_pacientes.php",
+      "addpacientes" => "views/agregar_pacientes.php",
     ];
 
     if (isset($_GET["url"])) {

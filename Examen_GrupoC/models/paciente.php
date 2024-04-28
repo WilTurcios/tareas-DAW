@@ -1,12 +1,12 @@
 <?php
 
-require_once "/interfaces/IModelo.php";
-require_once "/models/municipio.php";
+require_once "interfaces/IModelo.php";
+require_once "models/municipio.php";
 
 class Paciente implements IModelo
 {
   private $connection = null;
-  public Municipio $municipio = null;
+  public ?Municipio $municipio = null;
 
   function __construct(
     public ?int $id = null,
@@ -24,7 +24,7 @@ class Paciente implements IModelo
     }
 
     if ($id_municipio) {
-      $this->municipio = Municipio::get_by_id($id);
+      $this->municipio = Municipio::get_by_id($id_municipio)["data"][0];
     }
   }
 
@@ -85,7 +85,7 @@ class Paciente implements IModelo
     }
   }
 
-  public function update(
+  public static function update(
     int $id,
     string $nombre,
     string $apellido,
@@ -107,9 +107,9 @@ class Paciente implements IModelo
         direccion = '$direccion',
         sexo = '$sexo',
         tipo_sangre = '$tipo_sangre',
-        id_municipio = '$id_municipio',
-      WHERE id = '$id'";
-      $result = $this->connection->query($query);
+        id_municipio = '$id_municipio'
+      WHERE id = '$id';";
+      $result = (new self())->connection->query($query);
 
       if ($result) {
         $paciente = new self(
