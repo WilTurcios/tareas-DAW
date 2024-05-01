@@ -1,6 +1,7 @@
 <?php
 
-require_once "interfaces/IModelo.php";
+require_once "C:/xampp/htdocs/tareas DAW/Examen_GrupoC/interfaces/IModelo.php";
+require_once "C:/xampp/htdocs/tareas DAW/Examen_GrupoC/models/paciente.php";
 
 class municipio implements IModelo
 {
@@ -37,6 +38,7 @@ class municipio implements IModelo
         );
 
         $respuesta["data"][] = $municipio;
+
         return $respuesta;
       }
 
@@ -49,6 +51,8 @@ class municipio implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $this->connection->close();
     }
   }
 
@@ -59,10 +63,11 @@ class municipio implements IModelo
       "error_message" => "",
       "data" => []
     ];
+    $db = new self();
 
     try {
       $query = "UPDATE municipio SET nombre = '$nombre' WHERE id = '$id'";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         $municipio = new self(
@@ -71,6 +76,8 @@ class municipio implements IModelo
         );
 
         $respuesta["data"][] = $municipio;
+
+
         return $respuesta;
       }
 
@@ -83,6 +90,8 @@ class municipio implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 
@@ -92,10 +101,11 @@ class municipio implements IModelo
       "ok" => true,
       "error_message" => ""
     ];
+    $db = new self();
 
     try {
       $query = "DELETE FROM municipio WHERE id = '$id'";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         return $respuesta;
@@ -110,6 +120,8 @@ class municipio implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 
@@ -120,10 +132,11 @@ class municipio implements IModelo
       "error_message" => "",
       "data" => []
     ];
+    $db = new self();
 
     try {
       $query = "SELECT * FROM municipio;";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         while ($registro = $result->fetch_assoc()) {
@@ -134,7 +147,6 @@ class municipio implements IModelo
 
           $respuesta["data"][] = $municipio;
         }
-
 
         return $respuesta;
       }
@@ -148,6 +160,8 @@ class municipio implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 
@@ -158,10 +172,11 @@ class municipio implements IModelo
       "error_message" => "",
       "data" => []
     ];
+    $db = new self();
 
     try {
       $query = "SELECT * FROM municipio WHERE id = '$id';";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         while ($registro = $result->fetch_assoc()) {
@@ -172,7 +187,6 @@ class municipio implements IModelo
 
           $respuesta["data"][] = $municipio;
         }
-
 
         return $respuesta;
       }
@@ -186,6 +200,8 @@ class municipio implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 }

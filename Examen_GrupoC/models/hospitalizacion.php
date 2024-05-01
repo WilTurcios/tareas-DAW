@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-require_once "/interfaces/IModelo.php";
-require_once "/momdels/paciente.php";
-require_once "/momdels/hospitalizacion.php";
-require_once "/momdels/enfermedad.php";
+require_once "interfaces/IModelo.php";
+require_once "models/paciente.php";
+require_once "models/hospitalizacion.php";
+require_once "models/enfermedad.php";
 
 class Hospitalizacion implements IModelo
 {
@@ -29,9 +29,9 @@ class Hospitalizacion implements IModelo
       echo "Ha ocurrido un error: " . $error->getMessage();
     }
 
-    if ($id_empleado) $this->empleado = Empleado::get_by_id($id_empleado);
-    if ($id_paciente) $this->paciente = Paciente::get_by_id($id_paciente);
-    if ($id_enfermedad) $this->enfermedad = Enfermedad::get_by_id($id_enfermedad);
+    if ($id_empleado) $this->empleado = Empleado::get_by_id($id_empleado)["data"][0];
+    if ($id_paciente) $this->paciente = Paciente::get_by_id($id_paciente)["data"][0];
+    if ($id_enfermedad) $this->enfermedad = Enfermedad::get_by_id($id_enfermedad)["data"][0];
   }
 
   public function save(): array
@@ -46,6 +46,8 @@ class Hospitalizacion implements IModelo
       $id_empleado = $this->empleado->id;
       $id_enfermedad = $this->enfermedad->id;
       $id_paciente = $this->paciente->id;
+      $fecha_alta = $this->fecha_alta->format('Y-m-d');
+      $fecha_ingreso = $this->fecha_ingreso->format('Y-m-d');
 
       $query = "INSERT INTO hospitalizacion (
         motivo_consulta, 
@@ -56,11 +58,11 @@ class Hospitalizacion implements IModelo
         id_enfermedad
       ) VALUES (
         '$this->motivo_consulta', 
-        '$this->fecha_ingreso',
-        '$this->fecha_alta',
+        '$fecha_ingreso',
+        '$fecha_alta',
         '$id_paciente',
         '$id_empleado',
-        '$id_enfermedad',
+        '$id_enfermedad'
       )";
       $result = $this->connection->query($query);
 
@@ -89,10 +91,12 @@ class Hospitalizacion implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $this->connection->close();
     }
   }
 
-  public function update(
+  public static function update(
     int $id,
     string $motivo_consulta,
     DateTime $fecha_ingreso,
@@ -107,6 +111,8 @@ class Hospitalizacion implements IModelo
       "data" => []
     ];
 
+    $db = new self();
+
     try {
       $query = "UPDATE hospitalizacion 
       SET
@@ -118,7 +124,7 @@ class Hospitalizacion implements IModelo
         id_enfermedad = '$id_enfermedad'
       WHERE id = '$id'";
 
-      $result = $this->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         $hospitalizacion = new self(
@@ -132,6 +138,8 @@ class Hospitalizacion implements IModelo
         );
 
         $respuesta["data"][] = $hospitalizacion;
+
+
         return $respuesta;
       }
 
@@ -143,7 +151,10 @@ class Hospitalizacion implements IModelo
       $respuesta["ok"] = false;
       $respuesta["error_message"] = $error->getMessage();
 
+
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 
@@ -153,10 +164,11 @@ class Hospitalizacion implements IModelo
       "ok" => true,
       "error_message" => ""
     ];
+    $db = new self();
 
     try {
       $query = "DELETE FROM hospitalizacion WHERE id = '$id'";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         return $respuesta;
@@ -165,12 +177,16 @@ class Hospitalizacion implements IModelo
       $respuesta["ok"] = false;
       $respuesta["error_message"] = 'No se pudo eliminar el registro hospitalizacion, por favor intentalo de nuevo';
 
+
       return $respuesta;
     } catch (Exception $error) {
       $respuesta["ok"] = false;
       $respuesta["error_message"] = $error->getMessage();
 
+
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 
@@ -181,25 +197,29 @@ class Hospitalizacion implements IModelo
       "error_message" => "",
       "data" => []
     ];
+    $db = new self();
 
     try {
       $query = "SELECT * FROM hospitalizacion;";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         while ($registro = $result->fetch_assoc()) {
+          $fecha_ingreso = new DateTime($registro["fecha_ingreso"]);
+          $fecha_alta =  new DateTime($registro["fecha_alta"]);
           $hospitalizacion = new self(
-            $registro["id"],
+            (int)$registro["id"],
             $registro["motivo_consulta"],
-            $registro["fecha_ingreso"],
-            $registro["fecha_alta"],
-            $registro["id_paciente"],
-            $registro["id_empleado"],
-            $registro["id_enfermedad"]
+            $fecha_ingreso,
+            $fecha_alta,
+            (int)$registro["id_paciente"],
+            (int)$registro["id_empleado"],
+            (int)$registro["id_enfermedad"]
           );
 
           $respuesta["data"][] = $hospitalizacion;
         }
+
 
 
         return $respuesta;
@@ -213,7 +233,11 @@ class Hospitalizacion implements IModelo
       $respuesta["ok"] = false;
       $respuesta["error_message"] = $error->getMessage();
 
+
+
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 
@@ -224,10 +248,11 @@ class Hospitalizacion implements IModelo
       "error_message" => "",
       "data" => []
     ];
+    $db = new self();
 
     try {
       $query = "SELECT * FROM hospitalizacion WHERE id = '$id';";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         while ($registro = $result->fetch_assoc()) {
@@ -240,6 +265,8 @@ class Hospitalizacion implements IModelo
             $registro["id_empleado"],
             $registro["id_enfermedad"]
           );
+
+
 
           $respuesta["data"][] = $hospitalizacion;
         }
@@ -256,7 +283,11 @@ class Hospitalizacion implements IModelo
       $respuesta["ok"] = false;
       $respuesta["error_message"] = $error->getMessage();
 
+
+
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 }

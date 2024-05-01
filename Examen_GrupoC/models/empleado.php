@@ -1,9 +1,11 @@
 <?php
 
 require_once "interfaces/IModelo.php";
+require_once "models/paciente.php";
 
 class Empleado implements IModelo
 {
+  public array $pacientes;
   public $connection = null;
 
   function __construct(
@@ -16,6 +18,8 @@ class Empleado implements IModelo
     } catch (Exception $error) {
       echo "Ha ocurrido un error: " . $error->getMessage();
     }
+
+    if ($this->id) $this->pacientes = Paciente::get_pacientes_x_empleado($this->id)["data"];
   }
 
   public function save(): array
@@ -40,6 +44,7 @@ class Empleado implements IModelo
         );
 
         $respuesta["data"][] = $empleado;
+
         return $respuesta;
       }
 
@@ -52,6 +57,8 @@ class Empleado implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $this->connection->close();
     }
   }
 
@@ -75,6 +82,9 @@ class Empleado implements IModelo
         );
 
         $respuesta["data"][] = $empleado;
+
+        $this->connection->close();
+
         return $respuesta;
       }
 
@@ -87,6 +97,8 @@ class Empleado implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $this->connection->close();
     }
   }
 
@@ -96,10 +108,11 @@ class Empleado implements IModelo
       "ok" => true,
       "error_message" => ""
     ];
+    $db = new self();
 
     try {
       $query = "DELETE FROM empleado WHERE id = '$id'";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         return $respuesta;
@@ -114,6 +127,8 @@ class Empleado implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 
@@ -124,10 +139,11 @@ class Empleado implements IModelo
       "error_message" => "",
       "data" => []
     ];
+    $db = new self();
 
     try {
       $query = "SELECT * FROM empleado;";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         while ($registro = $result->fetch_assoc()) {
@@ -139,7 +155,6 @@ class Empleado implements IModelo
 
           $respuesta["data"][] = $empleado;
         }
-
 
         return $respuesta;
       }
@@ -153,6 +168,8 @@ class Empleado implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 
@@ -163,10 +180,11 @@ class Empleado implements IModelo
       "error_message" => "",
       "data" => []
     ];
+    $db = new self();
 
     try {
       $query = "SELECT * FROM empleado WHERE id = '$id';";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         while ($registro = $result->fetch_assoc()) {
@@ -192,6 +210,8 @@ class Empleado implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 }

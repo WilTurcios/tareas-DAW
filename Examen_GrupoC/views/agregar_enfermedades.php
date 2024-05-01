@@ -154,13 +154,13 @@
 
  <script>
    const message = document.getElementById("message");
-   const btnActualizarEnfermedad = document.getElementById("actualizar")
+   const btnsActualizarEnfermedad = document.querySelectorAll("#actualizar")
    const btnOKActualizar = document.getElementById("update_ok")
 
-   btnActualizarEnfermedad.addEventListener('click', (e) => {
+   btnsActualizarEnfermedad.forEach(btn => btn.addEventListener('click', (e) => {
      const data = e.currentTarget.dataset.infoEnfermedad
      btnOKActualizar.value = data
-   })
+   }))
 
    setTimeout(() => {
      message.remove()

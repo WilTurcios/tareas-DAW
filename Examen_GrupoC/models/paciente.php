@@ -1,12 +1,14 @@
 <?php
 
-require_once "interfaces/IModelo.php";
-require_once "models/municipio.php";
+require_once "C:/xampp/htdocs/tareas DAW/Examen_GrupoC/interfaces/IModelo.php";
+require_once "C:/xampp/htdocs/tareas DAW/Examen_GrupoC/models/municipio.php";
+require_once "C:/xampp/htdocs/tareas DAW/Examen_GrupoC/models/enfermedad.php";
 
 class Paciente implements IModelo
 {
   private $connection = null;
   public ?Municipio $municipio = null;
+  public array $enfermedades = [];
 
   function __construct(
     public ?int $id = null,
@@ -25,6 +27,10 @@ class Paciente implements IModelo
 
     if ($id_municipio) {
       $this->municipio = Municipio::get_by_id($id_municipio)["data"][0];
+    }
+
+    if ($this->id) {
+      $this->enfermedades = Enfermedad::get_enfermedades_by_paciente_id($this->id)["data"];
     }
   }
 
@@ -82,6 +88,8 @@ class Paciente implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $this->connection->close();
     }
   }
 
@@ -99,6 +107,7 @@ class Paciente implements IModelo
       "error_message" => "",
       "data" => []
     ];
+    $db = new self();
 
     try {
       $query = "UPDATE paciente SET 
@@ -109,7 +118,8 @@ class Paciente implements IModelo
         tipo_sangre = '$tipo_sangre',
         id_municipio = '$id_municipio'
       WHERE id = '$id';";
-      $result = (new self())->connection->query($query);
+
+      $result = $db->connection->query($query);
 
       if ($result) {
         $paciente = new self(
@@ -123,6 +133,8 @@ class Paciente implements IModelo
         );
 
         $respuesta["data"][] = $paciente;
+
+
         return $respuesta;
       }
 
@@ -135,6 +147,8 @@ class Paciente implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 
@@ -144,10 +158,11 @@ class Paciente implements IModelo
       "ok" => true,
       "error_message" => ""
     ];
+    $db = new self();
 
     try {
       $query = "DELETE FROM paciente WHERE id = '$id'";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         return $respuesta;
@@ -156,12 +171,18 @@ class Paciente implements IModelo
       $respuesta["ok"] = false;
       $respuesta["error_message"] = 'No se pudo eliminar el paciente, por favor intentalo de nuevo';
 
+
+
       return $respuesta;
     } catch (Exception $error) {
       $respuesta["ok"] = false;
       $respuesta["error_message"] = $error->getMessage();
 
+
+
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 
@@ -172,10 +193,11 @@ class Paciente implements IModelo
       "error_message" => "",
       "data" => []
     ];
+    $db = new self();
 
     try {
       $query = "SELECT * FROM paciente;";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         while ($registro = $result->fetch_assoc()) {
@@ -188,6 +210,8 @@ class Paciente implements IModelo
             $registro["tipo_sangre"],
             $registro["id_municipio"]
           );
+
+
 
           $respuesta["data"][] = $paciente;
         }
@@ -204,7 +228,65 @@ class Paciente implements IModelo
       $respuesta["ok"] = false;
       $respuesta["error_message"] = $error->getMessage();
 
+
+
       return $respuesta;
+    } finally {
+      $db->connection->close();
+    }
+  }
+  public static function get_pacientes_x_empleado($id): array
+  {
+    $respuesta = [
+      "ok" => true,
+      "error_message" => "",
+      "data" => []
+    ];
+    $db = new self();
+
+    try {
+      $query = "
+        select * from empleado em 
+          inner join hospitalizacion h on em.id = h.id_empleado
+          inner join paciente p on h.id_paciente = p.id where em.id = '$id';
+      ";
+
+      $result = $db->connection->query($query);
+
+      if ($result) {
+        while ($registro = $result->fetch_assoc()) {
+          $paciente = new self(
+            $registro["id"],
+            $registro["nombre"],
+            $registro["apellido"],
+            $registro["direccion"],
+            $registro["sexo"],
+            $registro["tipo_sangre"],
+            $registro["id_municipio"]
+          );
+
+
+
+          $respuesta["data"][] = $paciente;
+        }
+
+
+        return $respuesta;
+      }
+
+      $respuesta["ok"] = false;
+      $respuesta["error_message"] = 'No se pudo obtener a los pacientes registrados';
+
+      return $respuesta;
+    } catch (Exception $error) {
+      $respuesta["ok"] = false;
+      $respuesta["error_message"] = $error->getMessage();
+
+
+
+      return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 
@@ -215,10 +297,61 @@ class Paciente implements IModelo
       "error_message" => "",
       "data" => []
     ];
+    $db = new self();
 
     try {
       $query = "SELECT * FROM paciente WHERE id = '$id';";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
+
+      if ($result) {
+        while ($registro = $result->fetch_assoc()) {
+          $paciente = new self(
+            $registro["id"],
+            $registro["nombre"],
+            $registro["apellido"],
+            $registro["direccion"],
+            $registro["sexo"],
+            $registro["tipo_sangre"],
+            $registro["id_municipio"]
+          );
+
+
+
+          $respuesta["data"][] = $paciente;
+        }
+
+
+        return $respuesta;
+      }
+
+      $respuesta["ok"] = false;
+      $respuesta["error_message"] = 'No se pudo obtener al paciente especificado';
+
+      return $respuesta;
+    } catch (Exception $error) {
+      $respuesta["ok"] = false;
+      $respuesta["error_message"] = $error->getMessage();
+
+      return $respuesta;
+    } finally {
+      $db->connection->close();
+    }
+  }
+
+  public static function get_pacientes_by_municipio_id(int $id): array
+  {
+    $respuesta = [
+      "ok" => true,
+      "error_message" => "",
+      "data" => []
+    ];
+
+    $db = new self();
+    try {
+      $query = "SELECT p.* FROM paciente p
+          INNER JOIN municipio m ON p.id_municipio = m.id WHERE m.id = '$id';";
+
+      $result = $db->connection->query($query);
 
       if ($result) {
         while ($registro = $result->fetch_assoc()) {
@@ -248,6 +381,9 @@ class Paciente implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
+    return [];
   }
 }

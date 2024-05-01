@@ -1,6 +1,6 @@
 <?php
 
-require_once "interfaces/IModelo.php";
+require_once "C:/xampp/htdocs/tareas DAW/Examen_GrupoC/interfaces/IModelo.php";
 
 class Enfermedad implements IModelo
 {
@@ -24,10 +24,11 @@ class Enfermedad implements IModelo
       "error_message" => "",
       "data" => []
     ];
+    $db = new self();
 
     try {
       $query = "INSERT INTO enfermedad (nombre) VALUES ('$this->nombre')";
-      $result = $this->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         $this->id = $this->connection->insert_id;
@@ -37,6 +38,7 @@ class Enfermedad implements IModelo
         );
 
         $respuesta["data"][] = $enfermedad;
+
         return $respuesta;
       }
 
@@ -49,6 +51,8 @@ class Enfermedad implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 
@@ -60,9 +64,11 @@ class Enfermedad implements IModelo
       "data" => []
     ];
 
+    $db = new self();
+
     try {
       $query = "UPDATE enfermedad SET nombre = '$nombre' WHERE id = '$id'";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         $enfermedad = new self(
@@ -71,6 +77,7 @@ class Enfermedad implements IModelo
         );
 
         $respuesta["data"][] = $enfermedad;
+
         return $respuesta;
       }
 
@@ -83,6 +90,8 @@ class Enfermedad implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 
@@ -92,10 +101,11 @@ class Enfermedad implements IModelo
       "ok" => true,
       "error_message" => ""
     ];
+    $db = new self();
 
     try {
       $query = "DELETE FROM enfermedad WHERE id = '$id'";
-      $result = (new self)->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         return $respuesta;
@@ -110,6 +120,8 @@ class Enfermedad implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 
@@ -120,10 +132,11 @@ class Enfermedad implements IModelo
       "error_message" => "",
       "data" => []
     ];
+    $db = new self();
 
     try {
       $query = "SELECT * FROM enfermedad;";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         while ($registro = $result->fetch_assoc()) {
@@ -148,6 +161,8 @@ class Enfermedad implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 
@@ -158,10 +173,11 @@ class Enfermedad implements IModelo
       "error_message" => "",
       "data" => []
     ];
+    $db = new self();
 
     try {
       $query = "SELECT * FROM enfermedad WHERE id = '$id';";
-      $result = (new self())->connection->query($query);
+      $result = $db->connection->query($query);
 
       if ($result) {
         while ($registro = $result->fetch_assoc()) {
@@ -186,6 +202,53 @@ class Enfermedad implements IModelo
       $respuesta["error_message"] = $error->getMessage();
 
       return $respuesta;
+    } finally {
+      $db->connection->close();
+    }
+  }
+
+  public static function get_enfermedades_by_paciente_id(int $id): array
+  {
+    $respuesta = [
+      "ok" => true,
+      "error_message" => "",
+      "data" => []
+    ];
+    $db = new self();
+
+    try {
+      $query = "
+        select e.id, e.nombre from enfermedad e 
+          inner join hospitalizacion h on e.id = h.id_enfermedad 
+          inner join paciente p on p.id = h.id_paciente where p.id = '$id';";
+
+      $result = $db->connection->query($query);
+
+      if ($result) {
+        while ($registro = $result->fetch_assoc()) {
+          $enfermedad = new self(
+            $registro["id"],
+            $registro["nombre"]
+          );
+
+          $respuesta["data"][] = $enfermedad;
+        }
+
+
+        return $respuesta;
+      }
+
+      $respuesta["ok"] = false;
+      $respuesta["error_message"] = 'No se pudo obtener la enfermedad especificada.';
+
+      return $respuesta;
+    } catch (Exception $error) {
+      $respuesta["ok"] = false;
+      $respuesta["error_message"] = $error->getMessage();
+
+      return $respuesta;
+    } finally {
+      $db->connection->close();
     }
   }
 }

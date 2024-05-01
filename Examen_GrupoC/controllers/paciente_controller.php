@@ -1,6 +1,6 @@
 <?php
 // require_once "\services\mongodb\connection.php";
-require_once "models/Paciente.php";
+require_once "C:/xampp/htdocs/tareas DAW/Examen_GrupoC/models/paciente.php";
 class Paciente_Controller
 {
   public static function insert_paciente(
@@ -51,6 +51,7 @@ class Paciente_Controller
     string $tipo_sangre,
     int $id_municipio
   ) {
+
     if (!$id) return;
     if (!$nombre) return;
 
@@ -77,5 +78,10 @@ class Paciente_Controller
   public static function get_pacientes()
   {
     return Paciente::get_all();
+  }
+
+  public static function get_pacientes_by_municipio_id(int $id)
+  {
+    return Paciente::get_pacientes_by_municipio_id($id);
   }
 }
